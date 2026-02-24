@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APTIS Speaking Part 2</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* ===== TOP BAR ===== */
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 16px;
+    background:#1e3a8a;
+    color:#fff;
+    flex-wrap:wrap;
+}
+.top-bar .left{
+    font-weight:bold;
+    font-size:16px;
+}
+.top-bar .actions{
+    display:flex;
+    gap:8px;
+}
+.top-bar .actions a,
+.top-bar .actions button{
+    padding:8px 14px;
+    border:none;
+    border-radius:8px;
+    background:#fff;
+    color:#1e3a8a;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+    font-size:14px;
+}
+
+/* ===== CONTENT ===== */
+.container{
+    max-width:900px;
+    margin:30px auto;
+    padding:0 15px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.timer{
+    text-align:center;
+    font-size:30px;
+    font-weight:bold;
+    color:#1e3a8a;
+    margin:20px 0;
+}
+
+.image-box{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.image-box img{
+    max-width:100%;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.question{
+    background:#f1f5ff;
+    padding:18px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:18px;
+}
+
+.cue-box{
+    display:none;
+    margin-top:10px;
+    background:#fff3cd;
+    padding:12px;
+    border-radius:8px;
+}
+
+.controls{
+    text-align:center;
+    margin-top:20px;
+}
+
+.controls button{
+    padding:12px 22px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#1e3a8a;
+    color:#fff;
+    cursor:pointer;
+}
+
+.controls button:hover{
+    opacity:0.9;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+    .question{
+        font-size:20px;
+    }
+    .timer{
+        font-size:34px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <div class="left">
+        APTIS Speaking – Part 2
+    </div>
+    <div class="actions">
+        <a href="part2-select.html">⬅ Danh sách bài</a>
+        <a href="../index.html">🏠 Trang chủ</a>
+        <button id="logoutBtn">🚪 Đăng xuất</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <h1 id="testTitle">Practice Test</h1>
+
+    <div class="timer" id="timer">45</div>
+
+    <div class="image-box">
+        <img id="testImage" src="" alt="Part 2 Image">
+    </div>
+
+    <div id="questionsBox"></div>
+
+    <div class="controls">
+        <button id="startBtn">Start</button>
+    </div>
+
+</div>
+
+<!-- LOAD DATA FIRST -->
+<script src="part2-data.js"></script>
+
+<script>
+window.addEventListener("DOMContentLoaded", function(){
+
+/* ===== LOGIN CHECK ===== */
+if(localStorage.getItem("logged") !== "1"){
+    alert("Bạn cần đăng nhập trước");
+    window.location.href = "../index.html";
+}
+
+/* ===== LOGOUT ===== */
+document.getElementById("logoutBtn").addEventListener("click", function(){
+    localStorage.removeItem("logged");
+    window.location.href = "../index.html";
+});
+
+/* ===== GET TEST NUMBER FROM URL ===== */
+const urlParams = new URLSearchParams(window.location.search);
+const testId = parseInt(urlParams.get("test")) || 1;
+
+/* ===== FIND TEST ===== */
+const data = part2Data.find(t => t.id === testId);
+
+if(!data){
+    alert("Không tìm thấy bài test!");
+    return;
+}
+
+document.getElementById("testTitle").textContent = data.title;
+document.getElementById("testImage").src = data.image;
+
+let currentQuestion = 0;
+let time = 45;
+let timerInterval;
+
+const timerEl = document.getElementById("timer");
+const box = document.getElementById("questionsBox");
+
+/* ===== SHOW QUESTION ===== */
+function showQuestion(){
+    box.innerHTML = "";
+
+    const q = document.createElement("div");
+    q.className = "question";
+    q.textContent = data.questions[currentQuestion];
+
+    const cueBtn = document.createElement("button");
+    cueBtn.textContent = "Show Cue";
+    cueBtn.style.marginTop = "10px";
+
+    const cueBox = document.createElement("div");
+    cueBox.className = "cue-box";
+    cueBox.textContent = data.answers[currentQuestion];
+
+    cueBtn.onclick = function(){
+        cueBox.style.display = cueBox.style.display === "none" ? "block" : "none";
+    };
+
+    box.appendChild(q);
+    box.appendChild(cueBtn);
+    box.appendChild(cueBox);
+
+    startTimer();
+}
+
+/* ===== TIMER ===== */
+function startTimer(){
+    time = 45;
+    timerEl.textContent = time;
+    clearInterval(timerInterval);
+
+    timerInterval = setInterval(()=>{
+        time--;
+        timerEl.textContent = time;
+
+        if(time <= 0){
+            clearInterval(timerInterval);
+            currentQuestion++;
+
+            if(currentQuestion < 3){
+                showQuestion();
+            } else {
+                alert("Hoàn thành Part 2!");
+            }
+        }
+    },1000);
+}
+
+/* ===== START BUTTON ===== */
+document.getElementById("startBtn").addEventListener("click", function(){
+    currentQuestion = 0;
+    showQuestion();
+});
+
+});
+</script>
+
+</body>
+</html>

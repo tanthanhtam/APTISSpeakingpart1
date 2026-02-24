@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APTIS Speaking Part 1 Practice</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* ===== TOP BAR ===== */
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    padding:14px 18px;
+    background:#1e3a8a;
+    color:#fff;
+}
+
+.top-bar .left{
+    font-weight:600;
+    font-size:16px;
+}
+
+.top-bar .actions{
+    display:flex;
+    gap:10px;
+    margin-top:8px;
+}
+
+.top-bar .actions a,
+.top-bar .actions button{
+    padding:10px 14px;
+    border:none;
+    border-radius:8px;
+    background:#fff;
+    color:#1e3a8a;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    text-decoration:none;
+    min-width:90px;
+}
+
+.top-bar .actions button:hover,
+.top-bar .actions a:hover{
+    opacity:0.9;
+}
+
+/* ===== HEADER ===== */
+header{
+    text-align:center;
+    padding:25px 15px 10px;
+}
+
+header h1{
+    font-size:22px;
+    margin-bottom:8px;
+}
+
+header p{
+    font-size:16px;
+    color:#555;
+}
+
+/* ===== CONTAINER ===== */
+.container{
+    padding:20px 15px 40px;
+}
+
+/* ===== MOBILE OPTIMIZATION ===== */
+@media (max-width:600px){
+
+    .top-bar{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .top-bar .actions{
+        width:100%;
+        justify-content:space-between;
+    }
+
+    .top-bar .actions a,
+    .top-bar .actions button{
+        flex:1;
+        text-align:center;
+        font-size:15px;
+        padding:12px;
+    }
+
+    header h1{
+        font-size:20px;
+    }
+
+    header p{
+        font-size:15px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <div class="left">
+        APTIS Speaking Practice
+    </div>
+    <div class="actions">
+        <a href="../index.html">🏠 Trang chủ</a>
+        <button id="logoutBtn">🚪 Đăng xuất</button>
+    </div>
+</div>
+
+<header>
+    <h1>APTIS Speaking – Part 1</h1>
+    <p>Answer each question in 30 seconds</p>
+</header>
+
+<div class="container" id="questionContainer">
+    <!-- Questions will be generated here -->
+</div>
+
+<script>
+/* CHECK LOGIN */
+if(localStorage.getItem("logged") !== "1"){
+    alert("Bạn cần đăng nhập trước");
+    window.location.href = "../index.html";
+}
+
+/* LOGOUT */
+document.getElementById("logoutBtn").addEventListener("click", function(){
+    localStorage.removeItem("logged");
+    window.location.href = "../index.html";
+});
+</script>
+
+<script src="questions.js"></script>
+<script src="cues.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
