@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APTIS Speaking Part 3</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* ===== TOP BAR ===== */
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 16px;
+    background:#1e3a8a;
+    color:#fff;
+    flex-wrap:wrap;
+}
+.top-bar .left{
+    font-weight:bold;
+    font-size:16px;
+}
+.top-bar .actions{
+    display:flex;
+    gap:8px;
+}
+.top-bar .actions a,
+.top-bar .actions button{
+    padding:8px 14px;
+    border:none;
+    border-radius:8px;
+    background:#fff;
+    color:#1e3a8a;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+    font-size:14px;
+}
+
+/* ===== CONTENT ===== */
+.container{
+    max-width:900px;
+    margin:30px auto;
+    padding:0 15px;
+    text-align:center;
+}
+
+.circle{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    border:6px solid #1e3a8a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    font-weight:bold;
+    color:#1e3a8a;
+    margin:20px auto 5px auto;
+}
+
+.timer-text{
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.image-box img{
+    max-width:100%;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.question{
+    font-size:20px;
+    margin:20px 0;
+}
+
+.controls{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-top:15px;
+}
+
+.record-btn{
+    background:#0f172a;
+    color:#fff;
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.cue-btn{
+    background:#facc15;
+    color:#000;
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.cue-box{
+    display:none;
+    margin-top:15px;
+    background:#fff3cd;
+    padding:12px;
+    border-radius:8px;
+}
+
+.result-box{
+    margin-top:30px;
+}
+
+@media(max-width:600px){
+    .circle{
+        width:100px;
+        height:100px;
+        font-size:30px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="top-bar">
+    <div class="left">APTIS Speaking – Part 3</div>
+    <div class="actions">
+        <a href="part3-select.html">⬅ Danh sách bài</a>
+        <a href="../index.html">🏠 Trang chủ</a>
+        <button id="logoutBtn">🚪 Đăng xuất</button>
+    </div>
+</div>
+
+<div class="container">
+
+<h2 id="testTitle"></h2>
+
+<div class="circle" id="circle">45</div>
+<div class="timer-text" id="timerText">45s</div>
+
+<div class="image-box">
+    <img id="testImage" src="">
+</div>
+
+<div class="question" id="questionText"></div>
+
+<div class="controls">
+    <button class="record-btn" id="startBtn">🎙 Start</button>
+    <button class="cue-btn" id="cueBtn">💡 Cue</button>
+</div>
+
+<div class="cue-box" id="cueBox"></div>
+<div class="result-box" id="resultBox"></div>
+
+</div>
+
+<script src="part3-data.js"></script>
+
+<script>
+
+/* ===== LOGIN CHECK ===== */
+if(localStorage.getItem("logged") !== "1"){
+    alert("Bạn cần đăng nhập trước");
+    window.location.href="../index.html";
+}
+
+document.getElementById("logoutBtn").onclick=function(){
+    localStorage.removeItem("logged");
+    window.location.href="../index.html";
+};
+
+/* ===== LOAD DATA ===== */
+const params=new URLSearchParams(window.location.search);
+const testId=parseInt(params.get("test"))||1;
+const data=part3Data.find(t=>t.id===testId);
+
+document.getElementById("testTitle").textContent=data.title;
+document.getElementById("testImage").src=data.image;
+
+let current=0;
+let time=45;
+let interval;
+let mediaRecorder;
+let chunks=[];
+let recordings=[];
+
+const circle=document.getElementById("circle");
+const timerText=document.getElementById("timerText");
+const questionText=document.getElementById("questionText");
+const cueBtn=document.getElementById("cueBtn");
+const cueBox=document.getElementById("cueBox");
+const resultBox=document.getElementById("resultBox");
+
+/* ===== SHOW QUESTION ===== */
+function showQuestion(){
+    questionText.textContent=data.questions[current];
+    cueBox.textContent=data.answers[current];
+    cueBox.style.display="none";
+}
+
+/* ===== RECORD ===== */
+async function startRecording(){
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream);
+    mediaRecorder.start();
+    chunks=[];
+
+    mediaRecorder.ondataavailable=e=>chunks.push(e.data);
+
+    mediaRecorder.onstop=()=>{
+        const blob=new Blob(chunks,{type:"audio/webm"});
+        const url=URL.createObjectURL(blob);
+        recordings.push(url);
+    };
+}
+
+/* ===== TIMER ===== */
+function startTimer(){
+    time=45;
+    circle.textContent=time;
+    timerText.textContent=time+"s";
+
+    interval=setInterval(()=>{
+        time--;
+        circle.textContent=time;
+        timerText.textContent=time+"s";
+
+        if(time<=0){
+            clearInterval(interval);
+            mediaRecorder.stop();
+            nextQuestion();
+        }
+    },1000);
+}
+
+/* ===== NEXT QUESTION ===== */
+function nextQuestion(){
+    current++;
+    if(current<3){
+        showQuestion();
+        startRecording();
+        startTimer();
+    }else{
+        finishTest();
+    }
+}
+
+/* ===== FINISH ===== */
+function finishTest(){
+    questionText.textContent="Hoàn thành Part 3";
+    resultBox.innerHTML="<h3>Nghe lại & Download</h3>";
+
+    recordings.forEach((url,i)=>{
+        resultBox.innerHTML+=`
+            <p>Question ${i+1}</p>
+            <audio controls src="${url}"></audio><br>
+            <a href="${url}" download="Part3_Q${i+1}.webm">Download</a><br><br>
+        `;
+    });
+}
+
+/* ===== START BUTTON ===== */
+document.getElementById("startBtn").onclick=async function(){
+    current=0;
+    recordings=[];
+    resultBox.innerHTML="";
+    showQuestion();
+    await startRecording();
+    startTimer();
+};
+
+/* ===== CUE BUTTON ===== */
+cueBtn.onclick=function(){
+    cueBox.style.display=
+        cueBox.style.display==="none"?"block":"none";
+};
+
+</script>
+
+</body>
+</html>
